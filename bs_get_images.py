@@ -28,66 +28,59 @@ token = oauth.fetch_token(
 )
 
 
-bbox = [10.023824, 42.64002, 10.548371, 42.94235]
-start_date = "2020-06-01"
-end_date = "2020-08-31"
-collection_id = "sentinel-2-l2a"
+bbox = [9.915802, 42.613701, 10.651816, 42.976512]
+start_date = "2025-11-10"
+end_date = "2025-12-09"
+collection_id = "sentinel-1-grd"
+
 
 evalscript = """
 //VERSION=3
-function setup() {
-  return {
-    input: ["B02", "B03", "B04"],
-    output: {
-      bands: 3,
-      sampleType: "AUTO" // default value - scales the output values from [0,1] to [0,255].
-    }
-  }
-}
-
-function evaluatePixel(sample) {
-  return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02]
-}
+return [2*VV, dataMask];
 """
 
+
 # request body/payload
+
 json_request = {
-    'input': {
-        'bounds': {
-            'bbox': bbox,
-            'properties': {
-                'crs': 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'
-            }
+  "input": {
+    "bounds": {
+      "bbox": [
+        9.915802,
+        42.613701,
+        10.651816,
+        42.976512
+      ]
+    },
+    "data": [
+      {
+        "dataFilter": {
+          "timeRange": {
+            "from": f'{start_date}T00:00:00Z',
+            "to": f'{end_date}T23:59:59Z'
+          }
         },
-        'data': [
-            {
-                'type': 'S2L2A',
-                'dataFilter': {
-                    'timeRange': {
-                        'from': f'{start_date}T00:00:00Z',
-                        'to': f'{end_date}T23:59:59Z'
-                    },
-                    'mosaickingOrder': 'leastCC',
-                },
-            }
-        ]
-    },
-    'output': {
-        'width': 1024,
-        'height': 1024,
-        'responses': [
-            {
-                'identifier': 'default',
-                'format': {
-                    'type': 'image/jpeg',
-                }
-            }
-        ]
-    },
-    'evalscript': evalscript
+        "processing": {
+          "orthorectify": "false"
+        },
+        "type": "sentinel-1-grd"
+      }
+    ]
+  },
+  "output": {
+    "width": 512,
+    "height": 342.946,
+    "responses": [
+      {
+        "identifier": "default",
+        "format": {
+          "type": "image/jpeg"
+        }
+      }
+    ]
+  },
+  "evalscript": evalscript
 }
-
-
 
 # Set the request URL and headers
 url_request = "https://sh.dataspace.copernicus.eu/api/v1/process"
